@@ -20,3 +20,7 @@ android-cloud/*.dex
 *.pem
 *.key
 *.log
+node_modules/
+.wrangler/
+.dev.vars*
+cloudflare/public/

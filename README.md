@@ -1,5 +1,11 @@
 # 知帧 · Bilibili 视频学习 App
 
+## 在线多人版：Cloudflare Workers + D1
+
+无需 VPS 的部署方式见 [Cloudflare 部署说明](DEPLOY-CLOUDFLARE.md)。必须部署为 **Worker**，不是 Pages 静态站点。包含账号、云端学习记录、用户自填模型 API Key、资料/任务和浏览器 PDF 文字提取。执行 `npm ci`、配置 D1 与邀请码后，运行 `npm run deploy`。GitHub 只保存代码，部署成功后的实际网址由 Cloudflare 返回。
+
+下面是保留的 Python 本地版说明；Docker 部署见 [多人服务器部署说明](DEPLOY-BETA.md)。
+
 本地网页 App：导入字幕 → 生成概要与精华 → 每轮一个问题 → 按回答反馈 → 保存掌握证据。
 Python 3.10+，仅使用标准库，不用安装依赖。
 

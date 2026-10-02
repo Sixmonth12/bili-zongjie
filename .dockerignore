@@ -10,3 +10,7 @@ tests
 *.exe
 .env
 __pycache__
+node_modules
+.wrangler
+.dev.vars*
+cloudflare

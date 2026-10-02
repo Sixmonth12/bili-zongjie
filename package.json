@@ -1,0 +1,19 @@
+{
+  "name": "bili-study-cloudflare",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node cloudflare/build.mjs",
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "test": "node --test cloudflare/tests/*.test.mjs",
+    "db:local": "wrangler d1 migrations apply DB --local",
+    "db:remote": "wrangler d1 migrations apply DB --remote"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "wrangler": "^4.0.0"
+  },
+  "dependencies": { "pdfjs-dist": "^5.4.0" },
+  "engines": { "node": ">=22" }
+}
