@@ -19,8 +19,9 @@ Windows 双击 `start.bat`，或在本目录运行：
 python server.py --open
 ```
 
-浏览器访问 
-bili-zongjie.pages.dev。关闭终端会停止服务。端口占用时可运行 `python server.py --port 8766 --open`。
+本地浏览器访问 http://127.0.0.1:8765 。关闭终端会停止服务。端口占用时可运行 `python server.py --port 8766 --open`。
+
+此前配置的 `bili-zongjie.pages.dev` 是 Pages 地址，不能承载本项目的完整后端；在线版请使用完成 Workers 部署后返回的网址。
 
 ## 使用
 
