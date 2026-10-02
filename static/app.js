@@ -245,6 +245,7 @@ async function waitVideo(id){
   }
 }
 function fillVideo(data){
+  if(data.source==='asr'&&data.segments?.at(-1)?.end)data={...data,duration:toSeconds(data.segments.at(-1).end)};
   $('studyTitle').value=data.title;$('videoUrl').value=data.url;
   $('transcript').value=JSON.stringify({segments:data.segments.map(s=>({text:s.text,start:s.start ? toSeconds(s.start) : null,end:s.end ? toSeconds(s.end) : null}))});
   storage.set('videoSource', {...data,segments:undefined});renderVideoSource(data);$('sourceEditor').open=false;
