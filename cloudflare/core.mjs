@@ -3,7 +3,7 @@ export function check(ok, message, status=400) { if(!ok) throw new AppError(mess
 export function field(data,key,max=6000) { const v=data?.[key]; check(typeof v==='string' && v.trim() && v.length<=max,`缺少有效字段：${key}`); return v.trim(); }
 const stamp=n=>{check(Number.isFinite(Number(n)) && n>=0,'字幕时间无效'); const s=Math.floor(n);return [Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(v=>String(v).padStart(2,'0')).join(':');};
 export function parseTranscript(raw) {
-  check(typeof raw==='string' && raw.trim(),'请导入字幕。');check(raw.length<=55000,'字幕超过 55,000 字符，请分段导入。');raw=raw.replace(/^\uFEFF/,'').trim();let segments=[];
+  check(typeof raw==='string' && raw.trim(),'请导入字幕。');check(raw.length<=650000,'字幕超过 55,000 字符，请分段导入。');raw=raw.replace(/^\uFEFF/,'').trim();let segments=[];
   if(/^[{[]/.test(raw)) {
     let data;try{data=JSON.parse(raw);}catch{throw new AppError('JSON 字幕无法解析。');}
     const rows=Array.isArray(data)?data:data.body??data.segments;check(Array.isArray(rows),'JSON 需要 body 或 segments 数组。');
@@ -13,7 +13,7 @@ export function parseTranscript(raw) {
     if(i>=0){const times=lines[i].match(/(?:\d{1,2}:)?\d{2}:\d{2}[.,]\d{3}/g)||[];const text=lines.slice(i+1).join(' ').trim();if(text)segments.push({text,start:times[0]?.replace(',','.')??null,end:times[1]?.replace(',','.')??null});}
     else if(!/^(WEBVTT|NOTE|STYLE|REGION)/.test(block)) for(const text of lines.map(l=>l.trim()).filter(Boolean))segments.push({text,start:null,end:null});
   }
-  check(segments.length,'没有有效字幕正文。');return segments.map((s,i)=>({...s,id:'S'+(i+1)}));
+  check(segments.length,'没有有效字幕正文。');check(segments.reduce((n,s)=>n+s.text.length,0)<=55000,'正文超过 55,000 字符');return segments.map((s,i)=>({...s,id:'S'+(i+1)}));
 }
 export function validatePlan(raw,segments){
   const plan=Object.fromEntries(['main_idea','overview','coverage','structure'].map(k=>[k,field(raw,k)]));
@@ -33,6 +33,12 @@ export async function newSession(data,model,constants){
   for(const p of plan.points)s.records[p.id]={status:'未验证',evidence:[],skipped:false};message(s,'coach',demo?'固定演示课程，不评判答案正确性。':'学习地图已准备好。',point(s).question);return s;
 }
 export async function turn(s,data,model,instruction){
+  if(data.action==='ask'){
+    check(!s.ended,'本轮已结束，请先继续薄弱点');const answer=field(data,'answer',2000),question=latest(s);
+    let feedback='演示不调用模型。配置模型并用视频材料开始学习后，可以自由追问。';
+    if(!s.demo){const result=await model('回答追加问题，使用提供片段的真实 ID 标注依据，不足就说明，补充须标注。不评分、不改变练习题。只输出 JSON {"feedback":"不超过250字的解释"}。',{action:'ask',answer,point:point(s),segments:s.segments,history:s.messages.slice(-12),learning:s.learning});feedback=field(result,'feedback',3000);s.assisted=true;}
+    message(s,'user','追问：'+answer);message(s,'coach',feedback,question);return s;
+  }
   check(!s.ended,'本轮已结束，请继续薄弱点或导出。');const action=data.action,answer=data.answer??'',p=point(s),r=s.records[p.id];if(action==='answer')check(typeof answer==='string'&&answer.trim()&&answer.length<=6000,'请输入 1–6000 字符的回答。');
   if(action==='skip'){message(s,'user','跳过当前知识点');r.skipped=true;message(s,'coach','已跳过，仍需练习。',advance(s));}
   else if(action==='end'){s.ended=true;message(s,'coach','本次学习已保存，可以导出笔记或继续薄弱点。');}

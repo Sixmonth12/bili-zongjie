@@ -97,6 +97,9 @@ def extract(app, value, progress=lambda message: None):
             if not segments:
                 raise app.AppError('没有识别到语音，请确认视频包含清晰人声。')
             return dict(title=info.get('title') or '视频学习', url=url, segments=segments,
+                        cover=info.get('thumbnail', ''), uploader=info.get('uploader', ''),
+                        duration=info.get('duration'), views=info.get('view_count'),
+                        published=info.get('timestamp'),
                         subtitle='本机语音转写（可能有识别错误，未分析画面）', source='asr')
     except app.AppError:
         raise

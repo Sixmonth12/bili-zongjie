@@ -28,11 +28,14 @@
     <div class="import-card">
       <div class="card-heading"><span class="step-number">01</span><div><h2>带入你的学习材料</h2><p>Bilibili 视频链接，或者已有字幕</p></div><span class="pill">本地学习空间</span></div>
       <label for="videoUrl">视频链接</label>
-      <div class="url-row"><input id="videoUrl" placeholder="https://www.bilibili.com/video/BV…"><button id="fetchSubtitle" class="secondary">读取字幕 ↗</button></div>
+      <div class="url-row"><input id="videoUrl" placeholder="https://www.bilibili.com/video/BV…"><button id="fetchSubtitle" class="secondary">添加视频 ↗</button></div>
       <p id="importStatus" class="field-note" role="status">自动读取可访问字幕；无字幕或受限时，请导入文件。</p>
-      <div class="material-title-row"><label for="transcript">字幕 / 转写文本</label><label class="file-picker" for="subtitleFile">↑ 导入文件<input id="subtitleFile" type="file" accept=".txt,.srt,.vtt,.json"></label></div>
+      <section id="videoSource" class="hidden" aria-label="视频来源"></section>
+      <details id="sourceEditor"><summary>查看原文 / 手动导入文字</summary>
+      <div class="material-title-row"><label for="transcript">视频原文</label><label class="file-picker" for="subtitleFile">↑ 导入文件<input id="subtitleFile" type="file" accept=".txt,.srt,.vtt,.json"></label></div>
       <textarea id="transcript" placeholder="粘贴字幕或转写内容…&#10;支持 TXT、SRT、VTT 和 Bilibili JSON 字幕。"></textarea>
       <div class="material-meta"><span id="draftStatus">材料草稿自动保存在此浏览器</span><span id="charCount">0 / 55,000 字符</span></div>
+      </details>
       <div class="form-grid">
         <div><label for="studyTitle">学习名称</label><input id="studyTitle" placeholder="给这次学习起个名字"></div>
         <div><label for="goal">我希望学会</label><input id="goal" placeholder="例如：解释原理，并用在自己的项目中"></div>
@@ -61,7 +64,7 @@
         <details id="conversationHistory" class="conversation-history"><summary id="historyLabel">查看之前的对话</summary><div id="chat" class="chat"></div></details>
         <div id="currentExchange" class="current-exchange" aria-live="polite"></div>
         <div id="endedCard" class="ended-card hidden"><h3>本轮学习已保存</h3><p id="endedSummary"></p><button id="resumeBtn" class="secondary">继续薄弱点 →</button></div>
-        <div id="composer" class="composer"><label for="answer">你的思考</label><textarea id="answer" maxlength="6000" placeholder="先说说你的判断，再解释为什么…"></textarea><div class="composer-footer"><span id="answerStatus">Ctrl / ⌘ + Enter 发送</span><button id="sendAnswer" class="primary compact">发送 ↑</button></div><div class="learning-actions"><button data-action="hint">给提示</button><button data-action="explain">直接讲解</button><button data-action="skip">跳过</button><button data-action="end">结束学习</button></div></div>
+        <div id="composer" class="composer"><label for="answer">你的思考</label><textarea id="answer" maxlength="6000" placeholder="回答当前练习，或输入疑问后点「追加问题」…"></textarea><div class="composer-footer"><span id="answerStatus">Ctrl / ⌘ + Enter 发送</span><button id="askQuestion" type="button" class="secondary compact">追加问题</button><button id="sendAnswer" class="primary compact">发送 ↑</button></div><div class="learning-actions"><button data-action="hint">给提示</button><button data-action="explain">直接讲解</button><button data-action="skip">跳过</button><button data-action="end">结束学习</button></div></div>
       </div>
     </div>
   </section>

@@ -6,6 +6,7 @@ import hmac
 import workspace_features
 import accounts
 import video_extract
+from token_budget import compact_material, output_budget
 from contextlib import contextmanager
 import json
 import os
@@ -87,7 +88,7 @@ def stamp(seconds):
 def parse_transcript(raw):
     if not isinstance(raw, str) or not raw.strip():
         raise AppError("请粘贴字幕或导入字幕文件。")
-    if len(raw) > MAX_MATERIAL:
+    if len(raw) > 650000:
         raise AppError("字幕超过 55,000 字符。请分段导入；本次不会静默截断材料。")
     raw = raw.lstrip("\ufeff").strip()
     segments = []
@@ -123,6 +124,8 @@ def parse_transcript(raw):
                         segments.append({"text": line.strip(), "start": None, "end": None})
     if not segments:
         raise AppError("没有找到有效字幕正文。")
+    if sum(len(s['text']) for s in segments) > MAX_MATERIAL:
+        raise AppError('正文超过 55,000 字符，请分段导入。')
     for i, seg in enumerate(segments, 1):
         seg["id"] = f"S{i}"
     return segments
@@ -190,7 +193,10 @@ def import_bilibili(value):
     segments = parse_transcript(json.dumps(transcript, ensure_ascii=False))
     return {"title": data["title"] + (f" · P{page} {part['part']}" if len(pages) > 1 else ""),
             "url": f"https://www.bilibili.com/video/{bvid}/?p={page}", "segments": segments,
-            "subtitle": sub.get("lan_doc", sub.get("lan", "未知语言"))}
+            "subtitle": sub.get("lan_doc", sub.get("lan", "未知语言")),
+            "cover": data.get('pic', ''), "uploader": data.get('owner', {}).get('name', ''),
+            "duration": part.get('duration', data.get('duration')), "views": data.get('stat', {}).get('view'),
+            "published": data.get('pubdate')}
 
 
 def set_config(data):
@@ -231,9 +237,9 @@ def model_call(instruction, material):
     headers = {"Content-Type": "application/json"}
     if config["api_key"]:
         headers["Authorization"] = "Bearer " + config["api_key"]
-    payload = {"model": config["model"], "messages": [
+    payload = {"model": config["model"], "max_tokens": output_budget(material), "messages": [
         {"role": "system", "content": PROMPT + "\n\n" + instruction},
-        {"role": "user", "content": json.dumps(material, ensure_ascii=False)}]}
+        {"role": "user", "content": json.dumps(compact_material(material), ensure_ascii=False, separators=(',', ':'))}]}
     result = request_json(config["base_url"].rstrip("/") + "/chat/completions", headers, payload)
     try:
         content = result["choices"][0]["message"]["content"].strip()
@@ -368,6 +374,23 @@ def apply_turn(s, action, answer=""):
         raise AppError("本轮学习已结束。可以导出笔记，或从薄弱点继续。")
     point = active_point(s)
     record = s["records"][point["id"]]
+    if action == 'ask':
+        if not isinstance(answer, str) or not answer.strip() or len(answer) > 2000:
+            raise AppError('请输入 1–2000 字符的追问。')
+        question = latest_question(s)
+        if s['demo']:
+            feedback = '演示模式不调用模型。配置模型并用视频材料开始学习后，就可以针对内容自由追问。'
+        else:
+            result = model_call('回答学习者追加的问题，依据所给字幕片段，用真实段落 ID 标注原文依据；不够就说明，补充知识须标注。不评分、不改变练习题。只输出 JSON {"feedback":"不超过250字的解释"}。',
+                {'action': 'ask', 'answer': answer, 'point': point, 'segments': s['segments'],
+                 'history': s['messages'][-12:], 'learning': s['learning']})
+            feedback = string_field(result, 'feedback', 3000)
+            # A clarification may reveal the exercise answer; independent mastery needs rechecking.
+            s['assisted'] = True
+        add_message(s, 'user', '追问：' + answer.strip())
+        add_message(s, 'coach', feedback, question)
+        save_session(s)
+        return s
     if action == "answer" and (not isinstance(answer, str) or not answer.strip() or len(answer) > 6000):
         raise AppError("请输入 1–6000 字符的回答。")
     if action == "skip":
@@ -514,7 +537,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("Content-Security-Policy", "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'")
+        self.send_header("Content-Security-Policy", "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data: https://*.hdslb.com; frame-ancestors 'none'; base-uri 'none'")
         self.end_headers()
         self.wfile.write(payload)
 

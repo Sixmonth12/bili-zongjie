@@ -23,7 +23,7 @@ function saveMaterial() {
   updateReadiness();
 }
 function updateReadiness() {
-  const count=$('transcript').value.length, hasMaterial=!!$('transcript').value.trim();
+  const count=materialLength($('transcript').value), hasMaterial=!!$('transcript').value.trim();
   $('charCount').textContent=count.toLocaleString()+' / 55,000 字符';
   $('charCount').classList.toggle('over-limit',count>55000);
   $('materialReady').textContent=hasMaterial ? '✓ 材料已添加' : '① 添加学习材料';
@@ -155,11 +155,11 @@ function renderSession() {
 async function turn(action) {
   if (!session || busy) return;
   const answer = $('answer').value;
-  if (action==='answer' && !answer.trim()) {$('answer').focus();return;}
+  if ((action==='answer'||action==='ask') && !answer.trim()) {$('answer').focus();return;}
   await operation(action==='answer' ? '正在分析你的理解' : '正在准备下一步',async()=>{
     const previousDraft=activeDraftKey;
     session=await api('/api/turn',{id:session.id,version:session.updated,action,answer});
-    if(action==='answer')storage.remove(previousDraft);
+    if(action==='answer'||action==='ask')storage.remove(previousDraft);
     if(action==='hint'||action==='explain'||action==='end')storage.set(answerKey(session),answer);
     renderSession();await refreshSessions();if(!session.ended)$('answer').focus();
   });
@@ -246,7 +246,8 @@ async function waitVideo(id){
 }
 function fillVideo(data){
   $('studyTitle').value=data.title;$('videoUrl').value=data.url;
-  $('transcript').value=JSON.stringify({segments:data.segments.map(s=>({text:s.text,start:s.start ? toSeconds(s.start) : null,end:s.end ? toSeconds(s.end) : null}))},null,2);
+  $('transcript').value=JSON.stringify({segments:data.segments.map(s=>({text:s.text,start:s.start ? toSeconds(s.start) : null,end:s.end ? toSeconds(s.end) : null}))});
+  storage.set('videoSource', {...data,segments:undefined});renderVideoSource(data);$('sourceEditor').open=false;
   $('transcript').dispatchEvent(new Event('input'));
   $('importStatus').textContent='已读取 '+data.subtitle+' · '+data.segments.length+' 段字幕';
 }
@@ -270,6 +271,7 @@ $('exportBtn').addEventListener('click',async()=>{
 async function init(){
   if(!await window.accountReady)return;
   const draft=storage.get('material');if(draft)draftFields.forEach(id=>{if(typeof draft[id]==='string')$(id).value=draft[id];});
+  const savedVideo=storage.get('videoSource');if(savedVideo&&savedVideo.url===$('videoUrl').value&&$('transcript').value)renderVideoSource(savedVideo);
   updateReadiness();
   try{config=await api('/api/config');updateReadiness();const active=storage.get('active');if(active){try{session=await api('/api/session?id='+encodeURIComponent(active));renderSession();}catch{storage.remove('active');toast('上次的学习无法恢复，可从学习记录重新选择。',true);}}await refreshSessions();}catch(error){toast('连接本地服务失败：'+error.message,true);}
   if(!window.studyIdentity?.multi_user&&!window.studyIdentity?.runtime&&location.hash.startsWith('#video=')){
@@ -284,3 +286,18 @@ async function init(){
   }
 }
 init();
+
+function materialLength(raw){try{const d=JSON.parse(raw);const rows=Array.isArray(d)?d:d.segments||d.body;if(Array.isArray(rows))return rows.reduce((n,s)=>n+String(s.text??s.content??'').length,0);}catch{}return raw.length;}
+function renderVideoSource(data){
+ const panel=$('videoSource');panel.replaceChildren();panel.classList.remove('hidden');panel.append(el('h3','','视频来源'));
+ const card=el('article','video-source-card'),cover=el('div','video-cover');cover.append(el('span','','▷'));
+ try{const u=new URL(String(data.cover||'').replace(/^http:/,'https:'));if(u.protocol==='https:'&&u.hostname.endsWith('.hdslb.com')){const img=el('img');img.src=u.href;img.alt='视频封面';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.remove());cover.append(img);}}catch{}
+ if(data.duration)cover.append(el('small','duration',Math.floor(data.duration/60)+':'+String(Math.floor(data.duration%60)).padStart(2,'0')));
+ const info=el('div','video-info');info.append(el('h3','',data.title||'B 站视频'));
+ const meta=[data.uploader?'UP '+data.uploader:'',data.views!=null?Number(data.views).toLocaleString()+' 次播放':'',data.published?new Date(data.published*1000).toLocaleDateString('zh-CN'):''].filter(Boolean);info.append(el('p','',meta.join(' · ')),el('span','source-state','✓ 内容已准备好 · 可以开始学习'));
+ const actions=el('div','source-actions');const open=el('a','secondary','在 B 站观看 ↗');try{const u=new URL(data.url);if(u.protocol==='https:'&&['www.bilibili.com','bilibili.com'].includes(u.hostname)){open.href=u.href;open.target='_blank';open.rel='noopener noreferrer';actions.append(open);}}catch{}
+ const edit=el('button','secondary','查看原文');edit.type='button';edit.onclick=()=>{$('sourceEditor').open=true;$('sourceEditor').scrollIntoView({behavior:'smooth',block:'center'});};actions.append(edit);card.append(cover,info,actions);panel.append(card);
+}
+$('videoUrl').addEventListener('input',()=>{$('videoSource').classList.add('hidden');});
+
+$('askQuestion').addEventListener('click',()=>turn('ask'));
