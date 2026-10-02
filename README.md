@@ -19,7 +19,8 @@ Windows 双击 `start.bat`，或在本目录运行：
 python server.py --open
 ```
 
-浏览器访问 http://127.0.0.1:8765 。关闭终端会停止服务。端口占用时可运行 `python server.py --port 8766 --open`。
+浏览器访问 
+bili-zongjie.pages.dev。关闭终端会停止服务。端口占用时可运行 `python server.py --port 8766 --open`。
 
 ## 使用
 
