@@ -39,6 +39,7 @@ def extract(app, value, progress=lambda message: None):
     # Serialize heavy inference. Never run audio extraction on the hosted multi-user API.
     if not _lock.acquire(blocking=False):
         raise app.AppError('另一段视频正在转写，请等它完成后再试。')
+    stage = '加载提取组件'
     try:
         try:
             import yt_dlp
@@ -46,6 +47,7 @@ def extract(app, value, progress=lambda message: None):
         except ImportError:
             raise app.AppError('自动转写组件尚未安装，请运行「安装视频提取组件.bat」后重启 App。')
         progress('字幕不可用，正在获取音频信息…')
+        stage = '读取视频或下载音频'
         class Quiet:
             def debug(self, *args): pass
             def warning(self, *args): pass
@@ -74,10 +76,12 @@ def extract(app, value, progress=lambda message: None):
                     raise app.AppError('未得到可转写音频，视频可能需要登录或受访问限制。')
             global _model
             if _model is None:
+                stage = '下载或加载语音模型'
                 progress('正在加载语音模型；首次需下载 multilingual base 模型，可能耗时较长…')
                 cache = Path(os.getenv('LOCALAPPDATA', Path.home()))/'BiliStudy'/'models'
                 _model = WhisperModel('base', device='cpu', compute_type='int8', download_root=str(cache), cpu_threads=4)
             progress('正在本机转写音频，长视频可能需要数分钟…')
+            stage = '音频解码与语音转写'
             chunks, metadata = _model.transcribe(str(files[0]), beam_size=3)
             segments = []
             total = 0
@@ -96,8 +100,11 @@ def extract(app, value, progress=lambda message: None):
                         subtitle='本机语音转写（可能有识别错误，未分析画面）', source='asr')
     except app.AppError:
         raise
-    except Exception:
-        raise app.AppError('音频提取或转写失败：可能是 B 站访问限制、网络问题或语音模型下载失败。可重试或导入字幕；已有学习记录未修改。')
+    except Exception as exc:
+        if isinstance(exc, TypeError) and 'metadata_errors' in str(exc):
+            raise app.AppError('音频解码组件版本不兼容。请重新运行「安装视频提取组件.bat」安装兼容版本，然后重启 App。') from exc
+        # Do not send upstream URLs, cookies or other exception details to the browser.
+        raise app.AppError(f'{stage}失败（{type(exc).__name__}）。请检查此阶段的网络或组件安装后重试；已有学习记录未修改。') from exc
     finally:
         _lock.release()
 
@@ -129,7 +136,7 @@ def start_job(app, value):
                 jobs[jid].update(state='done', message='内容已提取', result=result)
         except Exception as exc:
             with jobs_lock:
-                jobs[jid].update(state='error', error=str(exc) if isinstance(exc, app.AppError) else '视频提取失败，请重试。')
+                jobs[jid].update(state='error', message='提取已停止', error=str(exc) if isinstance(exc, app.AppError) else '视频提取失败，请重试。')
     threading.Thread(target=run, daemon=True).start()
     return dict(id=jid)
 

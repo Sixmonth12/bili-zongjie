@@ -1,2 +1,4 @@
 yt-dlp>=2026.9.23,<2027
 faster-whisper>=1.2.0,<2
+# faster-whisper 1.2 uses av.open(metadata_errors=...), removed in PyAV 19.
+av>=14,<17

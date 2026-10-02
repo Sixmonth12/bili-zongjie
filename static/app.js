@@ -238,7 +238,7 @@ async function readVideoMaterial(){
   fillVideo(data);
 }
 async function waitVideo(id){
-  while(true){const job=await api('/api/video/status?id='+encodeURIComponent(id));$('importStatus').textContent=job.message||'正在处理…';
+  while(true){const job=await api('/api/video/status?id='+encodeURIComponent(id));$('importStatus').textContent=job.message||'正在处理…';$('busyText').textContent=job.message||'正在处理…';
     if(job.state==='done'){sessionStorage.removeItem('bili-video-job');return job.result;}
     if(job.state==='error'){sessionStorage.removeItem('bili-video-job');throw new Error(job.error);}
     await new Promise(resolve=>setTimeout(resolve,1500));
@@ -276,6 +276,11 @@ async function init(){
     const link=new URLSearchParams(location.hash.slice(1)).get('video');
     home();$('videoUrl').value=link||'';saveMaterial();history.replaceState(null,'',location.pathname);
     $('importStatus').textContent='视频链接已带入，点击「读取字幕」开始自动提取。';
+  }
+  if(!window.studyIdentity?.multi_user&&!window.studyIdentity?.runtime&&location.hash.startsWith('#job=')){
+    const id=new URLSearchParams(location.hash.slice(1)).get('job');
+    history.replaceState(null,'',location.pathname);home();
+    if(/^[a-f0-9]{32}$/.test(id||'')){sessionStorage.setItem('bili-video-job',id);await operation('恢复视频提取任务',async()=>fillVideo(await waitVideo(id)));}
   }
 }
 init();
