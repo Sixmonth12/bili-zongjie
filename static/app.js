@@ -220,13 +220,31 @@ $('subtitleFile').addEventListener('change',async e=>{
   try {$('transcript').value=await file.text();if(!$('studyTitle').value)$('studyTitle').value=file.name.replace(/\.[^.]+$/,'');saveMaterial();toast('字幕文件已导入。');}catch(error){toast('无法读取文件：'+error.message,true);}e.target.value='';
 });
 async function readVideoMaterial(){
-  const data=await api('/api/import',{url:$('videoUrl').value});
+  let data;
+  if(window.studyIdentity?.multi_user || window.studyIdentity?.runtime==='pages-personal'){
+    data=await api('/api/import',{url:$('videoUrl').value});
+  }else{
+    const job=await api('/api/video/start',{url:$('videoUrl').value});
+    sessionStorage.setItem('bili-video-job',job.id);
+    data=await waitVideo(job.id);
+  }
+  fillVideo(data);
+}
+async function waitVideo(id){
+  while(true){const job=await api('/api/video/status?id='+encodeURIComponent(id));$('importStatus').textContent=job.message||'正在处理…';
+    if(job.state==='done'){sessionStorage.removeItem('bili-video-job');return job.result;}
+    if(job.state==='error'){sessionStorage.removeItem('bili-video-job');throw new Error(job.error);}
+    await new Promise(resolve=>setTimeout(resolve,1500));
+  }
+}
+function fillVideo(data){
   $('studyTitle').value=data.title;$('videoUrl').value=data.url;
   $('transcript').value=JSON.stringify({segments:data.segments.map(s=>({text:s.text,start:s.start ? toSeconds(s.start) : null,end:s.end ? toSeconds(s.end) : null}))},null,2);
   $('transcript').dispatchEvent(new Event('input'));
   $('importStatus').textContent='已读取 '+data.subtitle+' · '+data.segments.length+' 段字幕';
 }
-$('fetchSubtitle').addEventListener('click',()=>operation('正在读取可访问字幕',readVideoMaterial));
+$('fetchSubtitle').addEventListener('click',()=>operation('正在提取视频内容（字幕优先，无字幕尝试本机转写）',readVideoMaterial));
+window.accountReady.then(ready=>{if(ready&&!window.studyIdentity?.multi_user&&!window.studyIdentity?.runtime){const id=sessionStorage.getItem('bili-video-job');if(id)operation('恢复视频提取任务',async()=>fillVideo(await waitVideo(id)));}});
 function toSeconds(t){return t.split(':').reduce((n,v)=>n*60+Number(v),0);}
 $('startStudy').addEventListener('click',async()=>{
   if(!$('transcript').value.trim()){toast('请先读取或导入字幕。',true);$('transcript').focus();return;}

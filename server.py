@@ -5,6 +5,7 @@ import secrets
 import hmac
 import workspace_features
 import accounts
+import video_extract
 from contextlib import contextmanager
 import json
 import os
@@ -555,6 +556,10 @@ class Handler(BaseHTTPRequestHandler):
                 user=accounts.lookup(self.headers) if getattr(self.server,'multi_user',False) else None
                 return self.send_data({'multi_user':getattr(self.server,'multi_user',False),'user':{'id':user['id'],'name':user['name']} if user else None,'providers':accounts.PROVIDERS})
             self.account_api()
+            if parsed.path == '/api/video/status':
+                if getattr(self.server, 'multi_user', False):
+                    raise AppError('自动音频提取仅供本地个人 App 使用。')
+                return self.send_data(video_extract.get_job(sys.modules[__name__], parse_qs(parsed.query).get('id', [''])[0]))
             if parsed.path == "/api/config":
                 return self.send_data(public_config())
             if parsed.path == "/api/sessions":
@@ -566,6 +571,7 @@ class Handler(BaseHTTPRequestHandler):
                 sid = parse_qs(parsed.query).get("id", [""])[0]
                 return self.send_data({"markdown": export_notes(get_session(sid))})
             allowed = {"/": ("index.html", "text/html; charset=utf-8"),
+                       "/background.jpg": ("background.jpg", "image/jpeg"),
                        "/app.js": ("app.js", "application/javascript; charset=utf-8"),
                        "/style.css": ("style.css", "text/css; charset=utf-8"),
                        "/workspace.js": ("workspace.js", "application/javascript; charset=utf-8"),
@@ -596,6 +602,10 @@ class Handler(BaseHTTPRequestHandler):
                 try:return self.login_response(data)
                 except ValueError as exc:raise AppError(str(exc))
             self.account_api()
+            if self.path == '/api/video/start':
+                if getattr(self.server, 'multi_user', False):
+                    raise AppError('自动音频提取仅供本地个人 App 使用。')
+                return self.send_data(video_extract.start_job(sys.modules[__name__], str(data.get('url', ''))))
             if self.path.startswith(('/api/workspace/','/api/pdf/')):
                 return self.send_data(workspace_features.handle(sys.modules[__name__],self.path,data))
             if self.path == "/api/config":
