@@ -93,3 +93,6 @@ a{color:#dcc5a1}button:focus-visible,a:focus-visible,summary:focus-visible{outli
 
 .session-item strong{color:#e0d7bf}.session-item small{color:#acbda6}.sidebar-label span{background:#54664855;color:#d8debd}.step-number,.card-number,.step-badge{background:linear-gradient(135deg,#79534e,#503e37);color:#ecdbbc;border-color:#b8997455;box-shadow:none}
 
+
+.demo-card .demo-icon,.demo-card>span,.demo-card>div:first-child:not(:nth-last-child(2)){background:#52644740;color:#d7caab;box-shadow:none}.workflow b{color:#c0ae8b}.step-number{background:#714b4b!important;color:#f0ddc2!important;box-shadow:none!important}.session-item strong{color:#e0d7bf!important}.session-item small{color:#bbc6b1!important}
+

@@ -220,6 +220,13 @@ $('subtitleFile').addEventListener('change',async e=>{
   try {$('transcript').value=await file.text();if(!$('studyTitle').value)$('studyTitle').value=file.name.replace(/\.[^.]+$/,'');saveMaterial();toast('字幕文件已导入。');}catch(error){toast('无法读取文件：'+error.message,true);}e.target.value='';
 });
 async function readVideoMaterial(){
+  if(window.studyIdentity?.runtime==='pages-personal'){
+    const link=$('videoUrl').value.trim();
+    if(!link)throw new Error('请先粘贴视频链接。');
+    $('homeError').classList.add('hidden');
+    location.assign('http://127.0.0.1:8766/#video='+encodeURIComponent(link));
+    return;
+  }
   let data;
   if(window.studyIdentity?.multi_user || window.studyIdentity?.runtime==='pages-personal'){
     data=await api('/api/import',{url:$('videoUrl').value});
@@ -265,5 +272,10 @@ async function init(){
   const draft=storage.get('material');if(draft)draftFields.forEach(id=>{if(typeof draft[id]==='string')$(id).value=draft[id];});
   updateReadiness();
   try{config=await api('/api/config');updateReadiness();const active=storage.get('active');if(active){try{session=await api('/api/session?id='+encodeURIComponent(active));renderSession();}catch{storage.remove('active');toast('上次的学习无法恢复，可从学习记录重新选择。',true);}}await refreshSessions();}catch(error){toast('连接本地服务失败：'+error.message,true);}
+  if(!window.studyIdentity?.multi_user&&!window.studyIdentity?.runtime&&location.hash.startsWith('#video=')){
+    const link=new URLSearchParams(location.hash.slice(1)).get('video');
+    home();$('videoUrl').value=link||'';saveMaterial();history.replaceState(null,'',location.pathname);
+    $('importStatus').textContent='视频链接已带入，点击「读取字幕」开始自动提取。';
+  }
 }
 init();
