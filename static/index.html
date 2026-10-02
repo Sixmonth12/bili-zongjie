@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>知帧 · 视频学习</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<div class="ambient-art" aria-hidden="true"></div><div class="ambient-sparkles" aria-hidden="true"></div>
+<div class="scene-caption" aria-hidden="true"><span>YOUR LITTLE LEARNING SPACE</span><strong>把喜欢的视频，<br>变成自己的知识。</strong><p>一点好奇，一点思考，每天学会一点。</p></div>
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="知帧首页"><span class="brandmark">▱</span><span>知帧<small>BILI STUDY</small></span></a>
+  <p class="brand-tagline">让 B 站的知识更触手可及</p>
+  <button id="accountButton" class="secondary hidden">账号</button>
+  <button id="newStudy" class="new-study">＋ 新的学习</button>
+  <button id="mobileHistory" class="mobile-history" aria-expanded="false">学习记录</button>
+  <nav class="workspace-nav"><button id="navChat">▣ 对话</button><button id="navLibrary">▤ 资料库</button><button id="navTasks">☑ 学习任务</button><button id="navPdf">▧ PDF 校对</button></nav>
+  <div class="side-shortcuts"><button id="navMaterial"><span>▤</span> 导入资料</button><button id="navDemo"><span>▷</span> 体验学习</button><button id="navSettings"><span>⚙</span> 模型设置</button></div>
+  <div class="sidebar-label">我的学习 <span id="sessionCount">0</span></div>
+  <nav id="sessionList" aria-label="学习记录"></nav>
+  <div class="sidebar-bottom"><div class="local-dot"></div><span>学习记录保存在本机</span><button id="settingsBtn" class="icon-button" aria-label="模型设置">⚙</button></div>
+</aside>
+<main>
+  <header class="topbar"><span>学习工作台 <span class="breadcrumb">/ <span id="breadcrumbText">开始学习</span></span></span><button id="topSettings" class="quiet-button">模型设置 <span id="configDot" class="status-dot"></span></button></header>
+  <div class="quick-actions"><button id="quickVideo"><span>▷</span><b>添加视频</b><small>读取 B 站字幕</small></button><button id="quickFile"><span>▤</span><b>修改资料</b><small>编辑字幕与文件</small></button><button id="quickBrowse"><span>◈</span><b>浏览 B 站</b><small>搜索感兴趣的内容</small></button><a href="https://www.bilibili.com/" target="_blank" rel="noopener noreferrer"><span>↗</span><b>打开 B 站</b><small>发现新的灵感</small></a><button id="quickSummary"><span>✧</span><b>总结视频</b><small>提炼概要与精华</small></button></div>
+  <section id="homeView" class="home-view">
+    <div class="eyebrow"><span class="tiny-square"></span>从看懂，到真正学会</div>
+    <h1>让看过的，<span class="accent">真正学会。</span></h1>
+    <p class="hero-copy">带入视频或字幕，提炼重点，再用一个个问题检验理解。</p>
+    <div class="readiness"><span id="materialReady">① 添加学习材料</span><button id="setupShortcut">② 配置模型</button><span>③ 开始互动学习</span></div>
+    <div id="homeError" class="inline-error hidden" role="alert"></div>
+    <div class="import-card">
+      <div class="card-heading"><span class="step-number">01</span><div><h2>带入你的学习材料</h2><p>Bilibili 视频链接，或者已有字幕</p></div><span class="pill">本地学习空间</span></div>
+      <label for="videoUrl">视频链接</label>
+      <div class="url-row"><input id="videoUrl" placeholder="https://www.bilibili.com/video/BV…"><button id="fetchSubtitle" class="secondary">读取字幕 ↗</button></div>
+      <p id="importStatus" class="field-note" role="status">自动读取可访问字幕；无字幕或受限时，请导入文件。</p>
+      <div class="material-title-row"><label for="transcript">字幕 / 转写文本</label><label class="file-picker" for="subtitleFile">↑ 导入文件<input id="subtitleFile" type="file" accept=".txt,.srt,.vtt,.json"></label></div>
+      <textarea id="transcript" placeholder="粘贴字幕或转写内容…&#10;支持 TXT、SRT、VTT 和 Bilibili JSON 字幕。"></textarea>
+      <div class="material-meta"><span id="draftStatus">材料草稿自动保存在此浏览器</span><span id="charCount">0 / 55,000 字符</span></div>
+      <div class="form-grid">
+        <div><label for="studyTitle">学习名称</label><input id="studyTitle" placeholder="给这次学习起个名字"></div>
+        <div><label for="goal">我希望学会</label><input id="goal" placeholder="例如：解释原理，并用在自己的项目中"></div>
+        <div><label for="level">已有基础</label><select id="level"><option>从基础开始</option><option>有一些了解</option><option>已有实践经验</option></select></div>
+        <div><label for="minutes">可用时间</label><select id="minutes"><option value="20">20 分钟</option><option value="10">10 分钟</option><option value="40">40 分钟</option><option value="60">60 分钟</option></select></div>
+      </div>
+      <div class="start-row"><span id="startHelp">添加材料后即可生成学习地图</span><button id="startStudy" class="primary">生成学习地图 →</button></div>
+    </div>
+    <div class="demo-card"><div class="demo-symbol">↗</div><div><h3>先试一段，再开始</h3><p>体验「主动回忆」演示课程。无需模型配置，演示不评判答案。</p></div><button id="demoBtn" class="text-button">体验演示 →</button></div>
+    <div class="workflow"><span><b>01</b> 建立知识地图</span><i>→</i><span><b>02</b> 一次一个问题</span><i>→</i><span><b>03</b> 验证理解与应用</span></div>
+  </section>
+  <section id="studyView" class="study-view hidden">
+    <div class="study-heading"><div><div class="eyebrow">你正在学习 <span id="modeBadge" class="mode-badge"></span></div><h1 id="sessionTitle"></h1><p id="sessionGoal"></p></div><button id="exportBtn" class="secondary">↓ 导出笔记</button></div>
+    <div class="study-toolbar"><div><strong id="progressText"></strong><p id="progressNote"></p></div><progress id="masteryProgress" value="0" max="1" aria-label="有迁移应用证据的知识点"></progress></div>
+    <div class="view-switch" role="group" aria-label="学习视图"><button id="practiceView" aria-pressed="true">互动练习</button><button id="mapView" aria-pressed="false">知识地图与原文</button><button id="focusView" aria-pressed="false">专注答题</button></div>
+    <div id="studyError" class="inline-error hidden" role="alert"></div>
+    <div id="studyLayout" class="study-layout" data-view="practice">
+      <div class="knowledge-panel">
+        <div class="panel-head"><h2>学习地图</h2><span id="pointCount" class="pill"></span></div>
+        <div id="summary"></div>
+        <div id="knowledgePoints"></div>
+        <details class="source-details"><summary>查看原始材料与出处</summary><div id="sourceSegments"></div></details>
+      </div>
+      <div class="coach-panel">
+        <div class="panel-head"><div><h2>与知识对话</h2><p id="currentTopic"></p></div><span class="coach-icon">✳</span></div>
+        <details id="conversationHistory" class="conversation-history"><summary id="historyLabel">查看之前的对话</summary><div id="chat" class="chat"></div></details>
+        <div id="currentExchange" class="current-exchange" aria-live="polite"></div>
+        <div id="endedCard" class="ended-card hidden"><h3>本轮学习已保存</h3><p id="endedSummary"></p><button id="resumeBtn" class="secondary">继续薄弱点 →</button></div>
+        <div id="composer" class="composer"><label for="answer">你的思考</label><textarea id="answer" maxlength="6000" placeholder="先说说你的判断，再解释为什么…"></textarea><div class="composer-footer"><span id="answerStatus">Ctrl / ⌘ + Enter 发送</span><button id="sendAnswer" class="primary compact">发送 ↑</button></div><div class="learning-actions"><button data-action="hint">给提示</button><button data-action="explain">直接讲解</button><button data-action="skip">跳过</button><button data-action="end">结束学习</button></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+<dialog id="accountDialog"><form id="accountForm"><h2>知帧 · 登录你的学习空间</h2><p class="field-note">测试版使用自己的模型 API Key，模型费用由对应服务商收取。资料和学习记录按账号隔离。</p><label for="accountName">用户名</label><input id="accountName" autocomplete="username" pattern="[A-Za-z0-9_]{3,32}" required placeholder="3–32 位字母、数字或下划线"><label for="accountPassword">密码</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="10" maxlength="128" required><label for="accountInvite">邀请码（注册时填写）</label><input id="accountInvite" autocomplete="off"><p id="accountError" role="alert" class="field-note"></p><div class="editor-actions"><button type="submit" class="primary">登录</button><button id="registerAccount" type="button" class="secondary">注册账号</button></div><p class="field-note">API Key 仅保留在本次登录会话内，退出或服务重启即清除。材料和回答会发送给你选择的模型服务商。暂不支持自助找回密码，请妥善保存。</p></form></dialog>
+<script src="/auth.js"></script>
+<dialog id="workspaceDialog"><div class="dialog-heading"><h2 id="workspaceTitle">资料库</h2><button id="closeWorkspace" class="icon-button" aria-label="关闭工作区">×</button></div><div id="workspaceBody"></div></dialog>
+<dialog id="editDialog"><div class="dialog-heading"><h2>修改资料</h2><button id="closeEdit" class="icon-button" aria-label="关闭资料编辑">×</button></div><p class="field-note">编辑后保存为新的材料草稿。已有总结与学习记录保留；重新总结后生成新记录。</p><label for="editTitle">资料名称</label><input id="editTitle"><label for="editUrl">视频链接</label><input id="editUrl"><label for="editText">字幕 / 文件内容</label><textarea id="editText" rows="12"></textarea><p id="editCount" class="field-note"></p><div class="editor-actions"><button id="editImport" class="secondary">导入文件</button><button id="editDownload" class="secondary">下载修改文件</button><button id="saveEdit" class="primary">保存资料</button></div><input id="editFile" type="file" accept=".txt,.srt,.vtt,.json" hidden></dialog>
+<dialog id="browseDialog"><div class="dialog-heading"><h2>浏览 B 站</h2><button id="closeBrowse" class="icon-button" aria-label="关闭视频搜索">×</button></div><p class="field-note">在 B 站搜索页浏览真实视频，复制视频链接后回到这里导入。</p><label for="browseQuery">想学习什么？</label><input id="browseQuery" placeholder="例如：大模型推理、Python、学习方法"><div class="browse-topics"><button data-search="大模型推理">大模型推理</button><button data-search="Python 入门">Python 入门</button><button data-search="学习方法">学习方法</button></div><a id="browseSearch" class="primary" href="https://search.bilibili.com/all" target="_blank" rel="noopener noreferrer">在 B 站搜索 ↗</a><label for="browseVideo">找到视频后，粘贴完整视频链接或 BV 号</label><input id="browseVideo" placeholder="https://www.bilibili.com/video/BV…"><button id="browseImport" class="secondary">带回 App 读取字幕</button></dialog>
+<dialog id="sourceDialog"><div class="dialog-heading"><h2 id="sourceTitle">原文依据</h2><button id="closeSource" class="icon-button" aria-label="关闭原文">×</button></div><p id="sourceText"></p><a id="sourceVideo" class="secondary hidden" target="_blank" rel="noopener noreferrer">在 Bilibili 查看这一段 ↗</a><p class="field-note">引用定位供你核对；不代表模型解释已经过事实验证。</p></dialog>
+<dialog id="settingsDialog"><form id="settingsForm"><div class="dialog-heading"><div><div class="eyebrow">连接你的模型</div><h2>模型设置</h2></div><button type="button" id="closeSettings" class="icon-button" aria-label="关闭">×</button></div><p>支持 Chat Completions 兼容服务。配置中的材料与回答会发送到此服务，学习记录保存在本机。</p><label for="baseUrl">服务地址（包含 /v1 等接口前缀）</label><input id="baseUrl" type="url" placeholder="https://api.openai.com/v1" required><label for="modelName">模型名称</label><input id="modelName" placeholder="填写服务提供商支持的模型 ID" required><label for="apiKey">API Key</label><input id="apiKey" type="password" autocomplete="off" placeholder="密钥只保存在当前服务进程内"><p id="keyStatus" class="field-note"></p><label class="checkbox-row"><input id="clearKey" type="checkbox">清除已有密钥</label><div class="dialog-footer"><span>本地无鉴权模型可留空</span><button type="submit" class="primary">保存设置</button></div></form></dialog>
+<div id="toast" class="toast hidden" role="alert"></div>
+<div id="busyOverlay" class="busy-overlay hidden" role="status"><div class="busy-card"><span class="spinner"></span><h3 id="busyText">正在准备学习地图</h3><p>处理完成后会自动保存，请稍候。</p></div></div>
+<script src="/app.js"></script>
+<script src="/workspace.js"></script>
+</body></html>

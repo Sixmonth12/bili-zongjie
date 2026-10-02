@@ -1,0 +1,12 @@
+.git
+.venv
+data
+build
+build-tools
+dist
+android
+tests
+*.jpg
+*.exe
+.env
+__pycache__

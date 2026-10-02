@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.zhizhen.study" android:versionCode="2" android:versionName="1.1.0-beta">
+<uses-sdk android:minSdkVersion="23" android:targetSdkVersion="28"/>
+<uses-permission android:name="android.permission.INTERNET"/>
+<application android:label="知帧学习" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:usesCleartextTraffic="false" android:allowBackup="false">
+<activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
+</application></manifest>

@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      STUDY_PUBLIC_ORIGIN: https://${STUDY_DOMAIN:?Set STUDY_DOMAIN}
+      STUDY_INVITE_CODE: ${STUDY_INVITE_CODE:?Set STUDY_INVITE_CODE}
+      STUDY_ALLOWED_PROVIDERS: ${STUDY_ALLOWED_PROVIDERS:-https://api.openai.com/v1,https://api.deepseek.com,https://dashscope.aliyuncs.com/compatible-mode/v1}
+    volumes:
+      - study_data:/data
+    mem_limit: 1g
+    pids_limit: 100
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      STUDY_DOMAIN: ${STUDY_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+volumes:
+  study_data:
+  caddy_data:
