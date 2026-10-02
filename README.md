@@ -1,6 +1,14 @@
 # 知帧 · Bilibili 视频学习 App
 
-## 在线多人版：Cloudflare Workers + D1
+## 个人使用版 · GitHub Pages
+
+公开访问地址：https://Sixmonth12.github.io/bili-zongjie/ （首次部署成功后可用）。无需账号。每个访客的学习记录、资料和任务仅保存在自己的浏览器 IndexedDB 中，不会公开给其他人，也不会自动跨设备同步。清理网站数据会删除记录，请及时导出笔记。
+
+API Key 仅保存在当前页面内存，刷新后重填；模型服务必须支持浏览器 CORS。Pages 不提供后端代理，因此 B 站字幕请手动导入，自动读取可使用原 Python 本地 App。保留演示、总结、逐轮学习、资料库、任务和 PDF 文字校对。
+
+仓库 Settings → Pages → Source 选择 **GitHub Actions**。每次推送 main 自动构建发布个人版，构建命令 `npm run build:pages`。发布物不包含数据库、密钥或多人账号服务。
+
+## 旧版可选方案：Cloudflare Workers + D1（已撤回为默认部署）
 
 无需 VPS 的部署方式见 [Cloudflare 部署说明](DEPLOY-CLOUDFLARE.md)。必须部署为 **Worker**，不是 Pages 静态站点。包含账号、云端学习记录、用户自填模型 API Key、资料/任务和浏览器 PDF 文字提取。执行 `npm ci`、配置 D1 与邀请码后，运行 `npm run deploy`。GitHub 只保存代码，部署成功后的实际网址由 Cloudflare 返回。
 

@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node cloudflare/build.mjs",
+    "build": "node pages/build.mjs",
+    "build:pages": "node pages/build.mjs",
+    "build:cloudflare": "node cloudflare/build.mjs",
     "dev": "npm run build && wrangler dev",
     "deploy": "npm run build && wrangler deploy",
     "test": "node --test cloudflare/tests/*.test.mjs",
